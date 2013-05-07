@@ -146,13 +146,13 @@ Aria.classDefinition({
          * @return {Boolean} false if preventDefault is true
          */
         _doubleSwipeStart : function (event) {
-            if (event.touches && event.touches.length >= this.NB_TOUCHES) {
+            if (event.touches && event.touches.length >= 2) {
                 var touchEventUtil = aria.touch.Event, positions = touchEventUtil.getPositions(event);
                 this.primaryPoint = positions[0] || null;
                 this.secondaryPoint = positions[1] || null;
 
             }
-            if (event.touches && event.touches.length >= this.NB_TOUCHES || typeof event.isPrimary != 'undefined'
+            if (event.touches && event.touches.length >= 2 || typeof event.isPrimary != 'undefined'
                     && event.isPrimary === false) {
 
                 var distance = 0, primarypoint = null, secondarypoint = null, time;
@@ -215,7 +215,7 @@ Aria.classDefinition({
         _doubleSwipeMove : function (event) {
 
             if ((event.touches && event.touches.length >= this.NB_TOUCHES)
-                    || (this.NB_TOUCHES === 1 && event.type === this.__mouseEventMap.move)) {
+                    || (this.NB_TOUCHES === 1 && event.type === (this.__mouseEventMap.move || this.touchEventMap.touchmove))) {
 
                 var positions = aria.touch.Event.getPositions(event);
                 this.primaryPoint = positions[0] || null;
@@ -266,7 +266,7 @@ Aria.classDefinition({
 
             if ((event.touches && event.changedTouches && (event.changedTouches.length || 0)
                     + (event.touches.length || 0) >= this.NB_TOUCHES)
-                    || (this.NB_TOUCHES === 1 && event.type === this.__mouseEventMap.end)) {
+                    || (this.NB_TOUCHES === 1 && event.type === (this.__mouseEventMap.end || this.touchEventMap.touchend))) {
                 var positions = aria.touch.Event.getPositions(event);
                 this.primaryPoint = positions[0] || null;
                 this.secondaryPoint = positions[1] || null;
@@ -274,7 +274,7 @@ Aria.classDefinition({
 
             if ((event.touches && event.changedTouches && (event.changedTouches.length || 0)
                     + (event.touches.length || 0) >= this.NB_TOUCHES)
-                    || (this.NB_TOUCHES === 1 && event.type === this.__mouseEventMap.end)) {
+                    || (this.NB_TOUCHES === 1 && event.type === (this.__mouseEventMap.end || this.touchEventMap.touchend))) {
                 var distance = 0, primarypoint = null, secondarypoint = null, distanceVar = 0, route = "", duration;
                 primarypoint = this.primaryPoint;
                 if (event.touches && event.touches.length >= 2) {

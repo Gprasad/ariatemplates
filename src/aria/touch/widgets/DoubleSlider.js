@@ -305,7 +305,7 @@ Aria.classDefinition({
                     }
                 });
                 // To set the initial coordinate position
-                this._savedX1 = evt.coordinates[0].x;
+                this._savedX1 = this._savedX2 = evt.coordinates[0].x;
             }
 
         },
@@ -387,21 +387,22 @@ Aria.classDefinition({
                             : evt.originalEvent.touches[k].srcElement;
                     target[k] = tar.id || "";
                 }
-                if ((target[0] === this._firstSlider.id || target[0] === this._secondSlider.id)
-                        && (target[1] === this._firstSlider.id || target[1] === this._secondSlider.id)) {
-                    var diff1 = evt.primaryPoint.x - this._savedX1, indexVal = 0;
-                    this._setLeftPosition(this._leftPositionFirst + diff1, indexVal);
+                if (target[0] && target[0] === this._firstSlider.id) {
+                    var diff = evt.primaryPoint.x - this._savedX1, indexVal = 0;
+                    this._setLeftPosition(this._leftPositionFirst + diff, indexVal);
                     this._updateDisplay(indexVal);
                     this._savedX1 = evt.primaryPoint.x;
                     this._setValue(indexVal);
-                    var diff2 = evt.secondaryPoint.x - this._savedX2, indexVal = 1;
-                    this._setLeftPosition(this._leftPositionSecond + diff2, indexVal);
-                    this._updateDisplay(indexVal);
-                    this._savedX2 = evt.secondaryPoint.x;
-                    this._setValue(indexVal);
-
                 }
-
+                if ((target[0] && target[0] === this._secondSlider.id)
+                        || (target[1] && target[1] === this._secondSlider.id)) {
+                    var pos = (evt.secondaryPoint) ? evt.secondaryPoint.x : evt.primaryPoint.x;
+                    var diff = pos - this._savedX2, indexVal = 1;
+                    this._setLeftPosition(this._leftPositionSecond + diff, indexVal);
+                    this._updateDisplay(indexVal);
+                    this._savedX2 = pos;
+                    this._setValue(indexVal);
+                }
             } else {
                 target.push((evt.originalEvent.target) ? evt.originalEvent.target : evt.originalEvent.srcElement);
                 if (target[0].id === this._firstSlider.id || target[0].id === this._secondSlider.id) {
@@ -440,20 +441,24 @@ Aria.classDefinition({
                             : evt.originalEvent.touches[k].srcElement;
                     target[k] = tar.id || "";
                 }
-                if ((target[0] === this._firstSlider.id || target[0] === this._secondSlider.id)
-                        && (target[1] === this._firstSlider.id || target[1] === this._secondSlider.id)) {
-                    var diff1 = evt.primaryPoint.x - this._savedX1;
-                    this._setLeftPosition(this._leftPositionFirst + diff1, 0);
-                    this._updateDisplay(0);
-                    this._savedX1 = evt.primaryPoint.x;
-                    this._setValue(0);
-                    var diff2 = evt.secondaryPoint.x - this._savedX2;
-                    this._setLeftPosition(this._leftPositionSecond + diff2, 1);
-                    this._updateDisplay(1);
-                    this._savedX2 = evt.secondaryPoint.x;
-                    this._setValue(1);
 
+                if (target[0] && target[0] === this._firstSlider.id) {
+                    var diff = evt.primaryPoint.x - this._savedX1, indexVal = 0;
+                    this._setLeftPosition(this._leftPositionFirst + diff, indexVal);
+                    this._updateDisplay(indexVal);
+                    this._savedX1 = evt.primaryPoint.x;
+                    this._setValue(indexVal);
                 }
+                if ((target[0] && target[0] === this._secondSlider.id)
+                        || (target[1] && target[1] === this._secondSlider.id)) {
+                    var pos = (evt.secondaryPoint) ? evt.secondaryPoint.x : evt.primaryPoint.x;
+                    var diff = pos - this._savedX2, indexVal = 1;
+                    this._setLeftPosition(this._leftPositionSecond + diff, indexVal);
+                    this._updateDisplay(indexVal);
+                    this._savedX2 = pos;
+                    this._setValue(indexVal);
+                }
+
             } else {
                 target.push((evt.originalEvent.target) ? evt.originalEvent.target : evt.originalEvent.srcElement);
                 if (target[0].id === this._firstSlider.id || target[0].id === this._secondSlider.id) {
