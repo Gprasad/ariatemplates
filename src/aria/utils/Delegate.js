@@ -158,7 +158,7 @@ Aria.classDefinition({
         // note that the change event does not bubble on all browsers (e.g.: on IE) but is necessary as it is the only
         // event which is raised when clicking on an option in the select in other browsers (Chrome)
         if (!aria.core.Browser.isIE) {
-            this.delegatedOnBody.push("change", "paste", "cut");
+            this.delegatedOnBody.push("change", "paste", "cut", "dblclick");
         }
 
         /**

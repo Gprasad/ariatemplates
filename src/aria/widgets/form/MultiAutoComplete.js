@@ -147,8 +147,16 @@ Aria.classDefinition({
                 this._keepFocus = false;
             }
             this.$DropDownTextInput._reactToControllerReport.call(this, report, arg);
+            if(!this.controller._editMode){
+               this.controller._addMultiselectValues(this, report, arg);
+            }
+        },
 
-          this.controller._addMultiselectValues(this, report, arg);
+        _setEditText : function (ref, report) {
+            var arg = {}, that = ref;
+            that.setHelpText(false);
+            that._hasFocus = true;
+            that.$TextInput._reactToControllerReport.call(that, report, arg);
 
         },
 
@@ -165,7 +173,9 @@ Aria.classDefinition({
                 // Closing the dropdown after typing is not a domEvent
                 var report = this.controller.checkValue(this.controller._dataModel.value);
                 this._reactToControllerReport(report);
+
             }
+
         },
 
         /**
@@ -219,6 +229,20 @@ Aria.classDefinition({
         _dom_oncut : function (event) {
             this.__propagateKeyDown(event);
         },
+        /**
+         * To Handle the onblur mechanism.
+         */
+        _dom_onblur : function (event) {
+            var textInput = this._textInputField;
+            if (textInput.value === "") {
+                // do nothing here..
+                return;
+            }
+            var report = this.controller.checkValue(textInput.value);
+            var arg = {};
+            this.controller._addMultiselectValues(this, report, arg);
+
+        },
 
         /**
          * Convert mouse event and browser copy/paste (contextual menu event) into a keydown event that can be handled
@@ -264,14 +288,7 @@ Aria.classDefinition({
                 this._cfg.popupOpen = false;
             }
             this.$DropDownTextInput.initWidget.call(this);
-        },
-        
-        _dom_onclick : function (domEvent) {
-            domEvent.preventDefault();
-            if(domEvent.target.className !=="closeBtn"){
-                return;
-            }
-            this.controller._removeMultiselectValues(domEvent.target);
-         }
+        }
+
     }
 });

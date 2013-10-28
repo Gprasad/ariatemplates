@@ -27,7 +27,7 @@
         $extends : "aria.widgets.controllers.DropDownListController",
         $dependencies : ["aria.DomEvent", "aria.utils.Json", "aria.templates.RefreshManager",
                 "aria.widgets.controllers.reports.DropDownControllerReport", "aria.utils.Type",
-                "aria.html.controllers.Suggestions"],
+                "aria.html.controllers.Suggestions", "aria.utils.Delegate"],
         $resources : {
             res : "aria.widgets.WidgetsRes"
         },
@@ -82,6 +82,8 @@
              * @type aria.widgets.CfgBeans:AutoCompleteCfg.selectionKeys
              */
             this.selectionKeys = null;
+
+            this._editMode = false;
 
             // Inherited from aria.html.controllers.Suggestions
             this._init();
@@ -287,19 +289,67 @@
                 return null;
 
             },
-            
-            _addMultiselectValues : function(ref, report, arg){
-            	if(typeof report.value=="object" && report.value!==null && report.text!==null){
-            		var domUtil = aria.utils.Dom;
-                    domUtil.insertAdjacentHTML(ref._textInputField, "beforeBegin", "<div class='xMultiAutocomplete_options'><span>"+report.text+"</span><a href='javascript:void(0);' data-value='"+report.text+"' class='closeBtn'>&times;</a></div>");
-                    ref._textInputField.value="";
-            	}
-            	
+
+            _addMultiselectValues : function (ref, report, arg) {
+
+                var isValid = (this._editMode)? typeUtil.isString(report.value) : typeUtil.isObject(report.value);
+                if (isValid && report.value !== null && report.text !== null) {
+                    var domUtil = aria.utils.Dom, that = ref;
+                    var editdelegateId = aria.utils.Delegate.add({
+                        fn : this._onEditEvent,
+                        scope : this,
+                        args : ref
+                    });
+
+                    domUtil.insertAdjacentHTML(that._textInputField, "beforeBegin", "<div class='xMultiAutocomplete_options' "
+                            + aria.utils.Delegate.getMarkup(editdelegateId)
+                            + "><span class='xMultiAutocomplete_Option_Text' >"
+                            + report.text
+                            + "</span><a href='javascript:void(0);' data-code='"
+                            + report.value.code
+                            + "' class='closeBtn'>&times;</a></div>");
+                    that._textInputField.value = "";
+                  
+                   if(this._editMode){
+                      this._editMode = false;
+                   }
+                    
+                }
             },
-            
-            _removeMultiselectValues : function(domElement){
-            	var parent = domElement.parentNode, domUtil = aria.utils.Dom;
-            	domUtil.removeElement(parent);
+
+            _onEditEvent : function (event, ref) {
+                if (event.type == "click") {
+                    var element = event.target;
+                    if (element.className === "closeBtn") {
+                        this._removeMultiselectValues(element);
+                    }
+
+                }
+                if (event.type === "dblclick") {
+                    var element = event.target;
+                    this._editMultiselectValue(element, ref);
+                }
+            },
+
+            _removeMultiselectValues : function (domElement) {
+                var parent = domElement.parentNode, domUtil = aria.utils.Dom;
+                domUtil.removeElement(parent);
+                // Handle the data values Here...
+            },
+
+            _editMultiselectValue : function (domElement, ref) {
+
+                var element = domElement, domUtil = aria.utils.Dom, dataText, that = ref, arg;
+                dataText = element.textContent;
+                this._removeMultiselectValues(element);
+                var report = this.checkValue(dataText);
+                report.caretPosStart = 0;
+                report.caretPosEnd = dataText.length;
+                arg = {};
+                that.setHelpText(false);
+                that._hasFocus = true;
+                that.$TextInput._reactToControllerReport.call(that, report, arg);
+                this._editMode = true;
             },
 
             /**

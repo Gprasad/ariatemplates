@@ -816,9 +816,8 @@ Aria.classDefinition({
             if (inputWidth < 0) {
                 inputWidth = 0;
             }
-            if(!this._isMultiAutocomplete){
               this.getTextInputField().style.width = inputWidth + "px";
-            }
+          
             if ((this._isIE7OrLess || this._simpleHTML) && !this._helpTextSet) {
                 this.getTextInputField().style.color = this._getTextFieldColor();
             }
