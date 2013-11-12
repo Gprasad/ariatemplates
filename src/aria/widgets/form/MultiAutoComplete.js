@@ -71,6 +71,7 @@ Aria.classDefinition({
         controller.maxlength = cfg.maxlength;
         controller.expandButton = cfg.expandButton;
         controller.selectionKeys = cfg.selectionKeys;
+        controller.allowRangeValues = cfg.allowRangeValues;
     },
     $destructor : function () {
         // The dropdown might still be open when we destroy the widget, destroy it now
@@ -119,10 +120,13 @@ Aria.classDefinition({
             options = options || {};
             if (!("defaultTemplate" in options)) {
                 var cfg = this._cfg;
-                if (cfg.suggestionsTemplate) {
-                    options.defaultTemplate = cfg.suggestionsTemplate;
+                if (cfg.event && cfg.event.name == "iconClick") {
+                    // options.defaultTemplate = cfg.suggestionsTemplate;
+                    options.defaultTemplate = "aria.widgets.form.templates.TemplateMultiSelect";
+                    cfg.event = null;
                 } else {
                     options.defaultTemplate = this.controller.getDefaultTemplate();
+                    // options.defaultTemplate = "aria.widgets.form.templates.TemplateMultiSelect";
                 }
             }
             if (!("minWidth" in options)) {
@@ -147,16 +151,9 @@ Aria.classDefinition({
                 this._keepFocus = false;
             }
             this.$DropDownTextInput._reactToControllerReport.call(this, report, arg);
-            if(!this.controller._editMode){
-               this.controller._addMultiselectValues(this, report, arg);
+            if (report) {
+                this.controller._addMultiselectValues(this, report, arg);
             }
-        },
-
-        _setEditText : function (ref, report) {
-            var arg = {}, that = ref;
-            that.setHelpText(false);
-            that._hasFocus = true;
-            that.$TextInput._reactToControllerReport.call(that, report, arg);
 
         },
 
@@ -173,9 +170,7 @@ Aria.classDefinition({
                 // Closing the dropdown after typing is not a domEvent
                 var report = this.controller.checkValue(this.controller._dataModel.value);
                 this._reactToControllerReport(report);
-
             }
-
         },
 
         /**
@@ -232,17 +227,17 @@ Aria.classDefinition({
         /**
          * To Handle the onblur mechanism.
          */
-        _dom_onblur : function (event) {
-            var textInput = this._textInputField;
-            if (textInput.value === "") {
-                // do nothing here..
-                return;
-            }
-            var report = this.controller.checkValue(textInput.value);
-            var arg = {};
-            this.controller._addMultiselectValues(this, report, arg);
+        /* _dom_onblur : function (event) {
+             var textInput = this._textInputField;
+             if (textInput.value === "") {
+                 // do nothing here..
+                 return;
+             }
+             var report = this.controller.checkValue(textInput.value);
+             var arg = {};
+             this.controller._addMultiselectValues(this, report, arg);
 
-        },
+         },*/
 
         /**
          * Convert mouse event and browser copy/paste (contextual menu event) into a keydown event that can be handled
@@ -288,6 +283,15 @@ Aria.classDefinition({
                 this._cfg.popupOpen = false;
             }
             this.$DropDownTextInput.initWidget.call(this);
+        },
+        _frame_events : function (evt) {
+            if (evt.name === "frameClick") {
+                if (this._hasFocus) {
+                    this._keepFocus = true;
+                } else {
+                    this.controller._setFocus(this);
+                }
+            }
         }
 
     }

@@ -84,6 +84,7 @@
             this.selectionKeys = null;
 
             this._editMode = false;
+            this._selectedSuggestions = [];
 
             // Inherited from aria.html.controllers.Suggestions
             this._init();
@@ -269,6 +270,10 @@
                     return;
                 }
 
+                if (this._editMode) {
+                    this._editMode = false;
+                }
+
                 this._typeTimout = setTimeout(function () {
                     controller._typeTimout = null;
 
@@ -292,28 +297,35 @@
 
             _addMultiselectValues : function (ref, report, arg) {
 
-                var isValid = (this._editMode)? typeUtil.isString(report.value) : typeUtil.isObject(report.value);
-                if (isValid && report.value !== null && report.text !== null) {
+                var isValid, label;
+
+                if (this._editMode) {
+                    isValid = typeUtil.isString(report.value);
+                } else {
+                    isValid = typeUtil.isObject(report.value);
+                }
+                if (isValid && report.value) {
+                    label = report.value.label ? report.value.label : report.value;
                     var domUtil = aria.utils.Dom, that = ref;
                     var editdelegateId = aria.utils.Delegate.add({
                         fn : this._onEditEvent,
                         scope : this,
-                        args : ref
+                        args : that
                     });
-
+                    this._selectedSuggestions.push(label);
                     domUtil.insertAdjacentHTML(that._textInputField, "beforeBegin", "<div class='xMultiAutocomplete_options' "
                             + aria.utils.Delegate.getMarkup(editdelegateId)
                             + "><span class='xMultiAutocomplete_Option_Text' >"
-                            + report.text
+                            + label
                             + "</span><a href='javascript:void(0);' data-code='"
-                            + report.value.code
+                            + label
                             + "' class='closeBtn'>&times;</a></div>");
                     that._textInputField.value = "";
-                  
-                   if(this._editMode){
-                      this._editMode = false;
-                   }
-                    
+
+                    if (this._editMode) {
+                        this._editMode = false;
+                    }
+
                 }
             },
 
@@ -321,19 +333,29 @@
                 if (event.type == "click") {
                     var element = event.target;
                     if (element.className === "closeBtn") {
-                        this._removeMultiselectValues(element);
+                        this._removeMultiselectValues(element, ref);
+                        this._setFocus(ref);
                     }
 
                 }
                 if (event.type === "dblclick") {
                     var element = event.target;
                     this._editMultiselectValue(element, ref);
+                    this._setFocus(ref);
                 }
             },
 
-            _removeMultiselectValues : function (domElement) {
-                var parent = domElement.parentNode, domUtil = aria.utils.Dom;
+            _setFocus : function (Element) {
+                setTimeout(function () {
+                    Element.getTextInputField().focus();
+                }, 10);
+            },
+
+            _removeMultiselectValues : function (domElement, ref) {
+                var parent = domElement.parentNode, domUtil = aria.utils.Dom, inputField;
+                aria.utils.Array.remove(this._selectedSuggestions, parent.firstChild.firstChild.data);
                 domUtil.removeElement(parent);
+
                 // Handle the data values Here...
             },
 
@@ -447,6 +469,7 @@
                     report.repositionDropDown = repositionDropDown;
                     var arg = {};
                     arg.stopValueProp = true;
+                    // arg.keyStroke = true;
                     this._raiseReport(report, arg);
                     aria.templates.RefreshManager.resume();
                 }
@@ -521,8 +544,9 @@
              * @return {aria.widgets.controllers.reports.DropDownControllerReport}
              */
             toggleDropdown : function (displayValue, currentlyOpen) {
+                // this._datamodel
                 this._resourcesHandler.getAllSuggestions({
-                    fn : this._suggestionsCallback,
+                    fn : this._suggestionsCallbackCheckboxes,
                     scope : this,
                     args : {
                         nextValue : displayValue,
@@ -530,6 +554,48 @@
                         keepSelectedValue : true
                     }
                 });
+
+                var dataModel = this._dataModel, options = dataModel.listContent;
+                // selectedValues = dataModel.selectedValues;
+                dataModel.selectedIdx = -1; // reset selected indexes
+                // retrieve selection from input
+                // selectedValues = this._parseInputString(options, displayValue);
+                /*if (!currentlyOpen) {
+                    // update list and datamodel
+                    if (!aria.utils.Json.equals(selectedValues, dataModel.value)) {
+                        aria.utils.Json.setValue(dataModel, 'selectedValues', selectedValues);
+                        dataModel.value = selectedValues;
+                        dataModel.text = this._getDisplayValue(selectedValues);
+                    }
+                }*/
+
+                var report = new aria.widgets.controllers.reports.DropDownControllerReport();
+                report.displayDropDown = options.length > 0 && !currentlyOpen;
+
+                if (report.displayDropDown) {
+                    // save initial input
+                    dataModel.initialInput = displayValue;
+                    // update list of options
+                    aria.utils.Json.setValue(dataModel, 'listContent', options);
+                }
+
+                report.text = dataModel.text;
+                // report.value = this._getValue(dataModel.text, dataModel.value);
+                /*if (!selectedValues.length) {
+                    dataModel.selectedIdx = null;
+                }*/
+                return report;
+            },
+
+            _suggestionsCallbackCheckboxes : function (res1) {
+                var jsonUtils = aria.utils.Json;
+
+                var dataModel = this._dataModel;
+                jsonUtils.setValue(dataModel, 'selectedIdx', -1);
+
+                // update datamodel through setValue to update the list has well
+                jsonUtils.setValue(dataModel, 'listContent', res1);
+
             },
 
             /**

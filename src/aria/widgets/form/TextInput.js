@@ -287,11 +287,11 @@ Aria.classDefinition({
          */
         _inputWithFrameMarkup : function (out) {
             var cfg = this._cfg, skinObj = this._skinObj, hts = this._helpTextSet, htc = this._skinObj.helpText, color = this._getTextFieldColor();
-            var stringUtils = aria.utils.String, MultiACPrfx = null;
+            var stringUtils = aria.utils.String, MultiACPrfx = null, MultiACSufx = null;
 
             MultiACPrfx = ['<div class="xMultiAutocomplete_list">'];
-            
-            MultiACSufx =['</div>'];
+
+            MultiACSufx = ['</div>'];
 
             var inlineStyle = ['padding:', skinObj.innerPaddingTop, 'px ', skinObj.innerPaddingRight, 'px ',
                     skinObj.innerPaddingBottom, 'px ', skinObj.innerPaddingLeft, 'px;position:relative;margin:0;'];
@@ -318,6 +318,12 @@ Aria.classDefinition({
                 inputWidth = 0;
             }
 
+            if (this._isMultiAutocomplete) {
+                inputWidth = 0;
+            }
+
+            // this.getTextInputField().style.width = inputWidth + "px";
+
             var spellCheck = "";
             if (cfg.spellCheck != null) {
                 // if spellCheck is specified in the config, include the
@@ -328,7 +334,6 @@ Aria.classDefinition({
             // For MultiAutocomplete Markup
             if (this._isMultiAutocomplete) {
                 out.write(MultiACPrfx.join(''));
-                inputWidth = 30;
             }
 
             if (this._isTextarea) {
@@ -357,13 +362,11 @@ Aria.classDefinition({
                 // the fieldset:
                 ].join(''));
             }
-            
-             // For MultiAutocomplete Markup
+
+            // For MultiAutocomplete Markup
             if (this._isMultiAutocomplete) {
                 out.write(MultiACSufx.join(''));
             }
-            
-            
 
         },
 
@@ -375,12 +378,11 @@ Aria.classDefinition({
          */
         _initInputMarkup : function (elt) {
             this.$InputWithFrame._initInputMarkup.call(this, elt);
-            if(!this._isMultiAutocomplete){
-               this._textInputField = this._frame.getChild(0);
-            }else{
-             this._textInputField = this._frame.getChild(0).lastChild;
-           }
-            
+            if (!this._isMultiAutocomplete) {
+                this._textInputField = this._frame.getChild(0);
+            } else {
+                this._textInputField = this._frame.getChild(0).lastChild;
+            }
 
             // FIXME: Fix applying initial state in the 'Div', remove
             // the below
@@ -816,8 +818,10 @@ Aria.classDefinition({
             if (inputWidth < 0) {
                 inputWidth = 0;
             }
-              this.getTextInputField().style.width = inputWidth + "px";
-          
+
+            if (!this._isMultiAutocomplete) {
+                this.getTextInputField().style.width = inputWidth + "px";
+            }
             if ((this._isIE7OrLess || this._simpleHTML) && !this._helpTextSet) {
                 this.getTextInputField().style.color = this._getTextFieldColor();
             }
