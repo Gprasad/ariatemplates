@@ -27,7 +27,7 @@
         $extends : "aria.widgets.controllers.DropDownListController",
         $dependencies : ["aria.DomEvent", "aria.utils.Json", "aria.templates.RefreshManager",
                 "aria.widgets.controllers.reports.DropDownControllerReport", "aria.utils.Type",
-                "aria.html.controllers.Suggestions", "aria.utils.Delegate"],
+                "aria.html.controllers.Suggestions", "aria.utils.Delegate", "aria.utils.Array", "aria.utils.ClassList"],
         $resources : {
             res : "aria.widgets.WidgetsRes"
         },
@@ -41,49 +41,25 @@
             this.$DropDownListController.constructor.call(this);
 
             /**
-             * Autofill behaviour enabled
+             * Freetext allowed, if it is set to true suggestion can be edited on double click
              * @type Boolean
              */
-            this.autoFill = false;
-
-            /**
-             * Freetext allowed
-             * @type Boolean
-             */
-            this.freeText = true;
-
-            /**
-             * Specifies if the Expand button is set
-             * @type Boolean
-             */
-            this.expandButton = false;
-
-            /**
-             * Number of resource request in progress
-             * @type Number
-             * @protected
-             */
-            this._pendingRequestNb = 0;
-
-            /**
-             * Maximum allowed length for the autocomplete value. Infinite if negative
-             * @type Number
-             */
-            this.maxlength = -1;
+            this.freeText = false;
 
             /**
              * To Remove focus when call back has no suggestions.
              * @type Boolean
              */
             this._resetFocus = false;
-
             /**
-             * Keys defined for submitting a selected item from autocomplete dropdown
-             * @type aria.widgets.CfgBeans:AutoCompleteCfg.selectionKeys
+             * To edit the suggestion on double click
+             * @type Boolean
              */
-            this.selectionKeys = null;
-
             this._editMode = false;
+            /**
+             * All the selected suggestions
+             * @type Array
+             */
             this._selectedSuggestions = [];
 
             // Inherited from aria.html.controllers.Suggestions
@@ -126,8 +102,6 @@
 
                 if (text !== '' && text !== dataModel.text) {
                     dataModel.text = text;
-
-                    this._pendingRequestNb += 1;
                     this._resourcesHandler.getSuggestions(text, {
                         fn : this._suggestionsCallback,
                         scope : this,
@@ -136,12 +110,8 @@
                             triggerDropDown : false
                         }
                     });
-
-                    // return null as there is asynchrone handling
                     return null;
                 }
-
-                // returned object
                 var report = new aria.widgets.controllers.reports.DropDownControllerReport();
 
                 // an empty field is usually not considered as an error
@@ -177,22 +147,6 @@
                 }
                 return report;
             },
-            /**
-             * Checks the displayed text is available in the returned suggestion, this will apply only in case of
-             * freetext is set to false
-             * @param {Object} value
-             * @return {Boolean}
-             */
-            _checkValueList : function () {
-                var freeTxtStatus = false, dataListContent = this._dataModel.listContent;
-                for (var i = 0, len = dataListContent.length; i < len; i += 1) {
-                    if (this._dataModel.text === dataListContent[i].value.label) {
-                        freeTxtStatus = true;
-                        break;
-                    }
-                }
-                return freeTxtStatus;
-            },
 
             /**
              * OVERRIDE Verify a given value
@@ -201,37 +155,46 @@
              * @override
              */
             checkValue : function (value) {
-                var report = new aria.widgets.controllers.reports.DropDownControllerReport(), dataModel = this._dataModel;
-                if (value == null) {
-                    // can be null either because it bound to null or because a request is in progress
+                var report = new aria.widgets.controllers.reports.DropDownControllerReport(), dataModel = this._dataModel, rangeMatch = null, reportVal = null;
+                var patt = new RegExp("^[a-z]{1}\\d+-\\d+");
+                if (value == null || aria.utils.Array.isEmpty(value)) {
+                    // can be null either because it bound to null or because it is bind to value or request is in
+                    // progress
                     dataModel.text = (this._pendingRequestNb > 0 && dataModel.text) ? dataModel.text : "";
                     dataModel.value = null;
                     report.ok = true;
+                    reportVal = null;
                 } else if (value && !typeUtil.isString(value)) {
                     if (aria.core.JsonValidator.check(value, this._resourcesHandler.SUGGESTION_BEAN)) {
                         var text = this._getLabelFromSuggestion(value);
                         dataModel.text = text;
-                        dataModel.value = value;
                         report.ok = true;
+                        reportVal = value;
+                        dataModel.value = this._selectedSuggestions;
                     } else {
                         dataModel.value = null;
-                        report.ok = false;
+                        report.ok = true;
                         this.$logError("Value does not match definition for this autocomplete: "
                                 + this._resourcesHandler.SUGGESTION_BEAN, [], value);
+                        reportVal = null;
                     }
                 } else {
                     if (typeUtil.isString(value)) {
                         dataModel.text = value;
+                        reportVal = value;
+                    }
+                    if (patt.test(value) && dataModel.listContent) {
+                        rangeMatch = dataModel.listContent;
                     }
                     if (!this.freeText) {
                         report.ok = false;
                         dataModel.value = null;
                     } else {
                         report.ok = true;
-                        dataModel.value = value;
+                        reportVal = value;
                     }
                 }
-                report.value = dataModel.value;
+                report.value = rangeMatch || reportVal;
                 report.text = dataModel.text;
                 return report;
             },
@@ -247,21 +210,12 @@
              */
             _checkInputKey : function (charCode, keyCode, nextValue, caretPosStart, caretPosEnd) {
 
-                // Before reacting to the controller report we check that the maxlength is not exceeded
-                // It is done here because the report is asynchronous and will programmatically set the
-                // value of the text input, thus bypassing maxlength attribute on text input
-                if (this.maxlength > 0 && nextValue.length > this.maxlength) {
-                    return;
-                }
-                // Setting the Data Model value to entered Text if the free text is allowed PTR05245510
+                var checkMaxOptionsFlag = this.maxOptions ? this.maxOptions > this._selectedSuggestions.length : true;
                 this._dataModel.value = this.freeText ? nextValue : null;
                 this._dataModel.text = nextValue;
-                // The timeout was moved from the _raiseReport method to here
-                // so that we never send an old report after having received a new key
-                // and so that it is possible to quickly cancel the display of suggestions when typing fast
-                if (this._typeTimout) {
-                    clearTimeout(this._typeTimout);
-                    this._typeTimout = null;
+                if (this._typeTimeout) {
+                    clearTimeout(this._typeTimeout);
+                    this._typeTimeout = null;
                 }
                 var controller = this, domEvent = aria.DomEvent;
 
@@ -274,104 +228,188 @@
                     this._editMode = false;
                 }
 
-                this._typeTimout = setTimeout(function () {
-                    controller._typeTimout = null;
-
+                this._typeTimeout = setTimeout(function () {
+                    controller._typeTimeout = null;
                     controller._pendingRequestNb += 1;
-                    controller._resourcesHandler.getSuggestions(nextValue, {
-                        fn : controller._suggestionsCallback,
-                        scope : controller,
-                        args : {
-                            nextValue : nextValue,
-                            triggerDropDown : true,
-                            caretPosStart : caretPosStart,
-                            caretPosEnd : caretPosEnd
-                        }
-                    });
+                    if (checkMaxOptionsFlag) {
+                        controller._resourcesHandler.getSuggestions(nextValue, {
+                            fn : controller._suggestionsCallback,
+                            scope : controller,
+                            args : {
+                                nextValue : nextValue,
+                                triggerDropDown : true,
+                                caretPosStart : caretPosStart,
+                                caretPosEnd : caretPosEnd
+                            }
+                        });
+                    }
                 }, 10);
-
-                // return null as there is asynchrone handling
                 return null;
 
             },
+            /**
+             * Add the selected suggestion(s) to widget
+             * @param {aria.widgets.form.MultiAutoComplete} ref
+             * @param {aria.widgets.controllers.reports.DropDownControllerReport} report
+             * @param {Object} arg Optional parameters
+             */
 
             _addMultiselectValues : function (ref, report, arg) {
+                var patt = new RegExp("^[a-z]{1}\\d+-\\d+");
 
                 var isValid, label;
-
                 if (this._editMode) {
                     isValid = typeUtil.isString(report.value);
                 } else {
                     isValid = typeUtil.isObject(report.value);
                 }
-                if (isValid && report.value) {
-                    label = report.value.label ? report.value.label : report.value;
-                    var domUtil = aria.utils.Dom, that = ref;
-                    var editdelegateId = aria.utils.Delegate.add({
-                        fn : this._onEditEvent,
-                        scope : this,
-                        args : that
-                    });
-                    this._selectedSuggestions.push(label);
-                    domUtil.insertAdjacentHTML(that._textInputField, "beforeBegin", "<div class='xMultiAutocomplete_options' "
-                            + aria.utils.Delegate.getMarkup(editdelegateId)
-                            + "><span class='xMultiAutocomplete_Option_Text' >"
-                            + label
-                            + "</span><a href='javascript:void(0);' data-code='"
-                            + label
-                            + "' class='closeBtn'>&times;</a></div>");
-                    that._textInputField.value = "";
 
+                if (this.freeText && arg && arg.eventName == "blur" && report.value) {
+                    isValid = true;
+                }
+                if (report.value && report.value[0] && patt.test(report.value[0].entry)) {
+                    isValid = true;
+                }
+                if (isValid && report.value && !ref._dropdownPopup) {
+                    var suggestionsMarkup = "", domUtil = aria.utils.Dom;
+                    if (aria.utils.Type.isArray(report.value)) {
+                        var maxOptionsLength = this.maxOptions
+                                ? aria.utils.Math.min(this.maxOptions, report.value.length)
+                                        - this._selectedSuggestions.length
+                                : report.value.length;
+                        for (var i = 0; i < maxOptionsLength; i++) {
+                            suggestionsMarkup += this._generateSuggestionMarkup(report.value[i].value, ref);
+                        }
+                    } else {
+                        label = report.value.label ? report.value.label : report.value;
+                        suggestionsMarkup = this._generateSuggestionMarkup(report.value, ref);
+                    }
+                    domUtil.insertAdjacentHTML(ref._textInputField, "beforeBegin", suggestionsMarkup);
+                    if (ref._frame.getChild(0).lastChild !== ref._textInputField) {
+                        domUtil.insertAdjacentHTML(ref._frame.getChild(0).lastChild, "afterEnd", "<span></span>");
+                        domUtil.replaceDomElement(ref._frame.getChild(0).lastChild, ref._textInputField);
+                       // ref._textInputField.value = "";
+                    }
+                    ref._textInputField.value = "";
                     if (this._editMode) {
                         this._editMode = false;
                     }
+                    ref._updateModel(this._selectedSuggestions);
 
                 }
             },
+            /**
+             * Generate markup for selected suggestion
+             * @param {String} report
+             * @param {aria.widgets.form.MultiAutoComplete} ref
+             * @return {String}
+             */
+            _generateSuggestionMarkup : function (value, ref) {
+                var suggestionMarkup, checkExistingValue = false;
+                var label = value.label || value;
+                var editdelegateId = aria.utils.Delegate.add({
+                    fn : this._onEditEvent,
+                    scope : this,
+                    args : ref
+                });
+                for (var k = 0; k < this._selectedSuggestions.length; k++) {
+                    if (this._selectedSuggestions[k].label == value) {
+                        checkExistingValue = true;
+                        break;
+                    }
+                }
+                if (!checkExistingValue)
+                    this._selectedSuggestions.push(value);
+                suggestionMarkup = "<div class='xMultiAutocomplete_options' "
+                        + aria.utils.Delegate.getMarkup(editdelegateId)
+                        + "><span class='xMultiAutocomplete_Option_Text' >" + label
+                        + "</span><a href='javascript:void(0);' class='closeBtn'></a></div>";
+                return suggestionMarkup;
+
+            },
+            /**
+             * Handling click and double click event for close and edit
+             * @param {aria.utils.Event} event
+             * @param {aria.widgets.form.MultiAutoComplete} ref
+             */
 
             _onEditEvent : function (event, ref) {
                 if (event.type == "click") {
                     var element = event.target;
                     if (element.className === "closeBtn") {
-                        this._removeMultiselectValues(element, ref);
-                        this._setFocus(ref);
+                        this._removeMultiselectValues(element, ref, event);
                     }
-
+                    if (element.className.indexOf("_Option_Text")) {
+                        this._highLightoptions(element.parentNode);
+                    }
                 }
-                if (event.type === "dblclick") {
+                if (event.type == "dblclick" && this.freeText) {
                     var element = event.target;
-                    this._editMultiselectValue(element, ref);
-                    this._setFocus(ref);
+                    if (element.className == "xMultiAutocomplete_Option_Text") {
+                        this._editMultiselectValue(element, ref, event);
+                    }
                 }
             },
 
-            _setFocus : function (Element) {
-                setTimeout(function () {
-                    Element.getTextInputField().focus();
-                }, 10);
+            _highLightoptions : function (selectedNode) {
+                var element = [];
+                element.push(selectedNode);
+                if (this._selected && this._selected !== selectedNode) {
+                    element.push(this._selected);
+                }
+                for (var j = 0; j < element.length; j++) {
+                    var selected = new aria.utils.ClassList(element[j]);
+                    selected.toggle("options_selected");
+                    selected.$dispose();
+                }
+                this._selected = selectedNode;
             },
-
-            _removeMultiselectValues : function (domElement, ref) {
-                var parent = domElement.parentNode, domUtil = aria.utils.Dom, inputField;
-                aria.utils.Array.remove(this._selectedSuggestions, parent.firstChild.firstChild.data);
+            /**
+             * To remove suggestion on click of close
+             * @param {aria.utils.HTML} domElement
+             * @param {aria.widgets.form.MultiAutoComplete} ref
+             * @param {aria.utils.Event} event
+             */
+            _removeMultiselectValues : function (domElement, ref, event) {
+                var parent = domElement.parentNode, domUtil = aria.utils.Dom;
+                var label = parent.firstChild.innerText || parent.firstChild.innerText.textContent;
+                this._removeValues(label);
                 domUtil.removeElement(parent);
-
-                // Handle the data values Here...
+                if (event.type == "click") {
+                    ref.getTextInputField().focus();
+                }
+                ref._updateModel(this._selectedSuggestions);
+            },
+            /**
+             * To edit suggestion on doubleclick
+             * @param {aria.utils.HTML} domElement
+             * @param {aria.widgets.form.MultiAutoComplete} ref
+             * @param {aria.utils.Event} event
+             */
+            _editMultiselectValue : function (domElement, ref, event) {
+                var domUtil = aria.utils.Dom, label, arg = {};
+                label = domElement.textContent || domElement.innerText;
+                ref.setHelpText(false);
+                domUtil.replaceDomElement(domElement.parentNode, ref._textInputField);
+                this._removeValues(label);
+                ref._textInputField.focus();
+                var report = this.checkValue(label);
+                report.caretPosStart = 0;
+                report.caretPosEnd = label.length;
+                ref._hasFocus = true;
+                ref.$TextInput._reactToControllerReport.call(ref, report, arg);
+                this._editMode = true;
+                ref._updateModel(this._selectedSuggestions);
             },
 
-            _editMultiselectValue : function (domElement, ref) {
-
-                var element = domElement, domUtil = aria.utils.Dom, dataText, that = ref, arg;
-                dataText = element.textContent;
-                this._removeMultiselectValues(element);
-                var report = this.checkValue(dataText);
-                report.caretPosStart = 0;
-                report.caretPosEnd = dataText.length;
-                arg = {};
-                that.setHelpText(false);
-                that._hasFocus = true;
-                that.$TextInput._reactToControllerReport.call(that, report, arg);
-                this._editMode = true;
+            _removeValues : function (label) {
+                var indexToRemove, arrayUtil = aria.utils.Array;
+                arrayUtil.forEach(this._selectedSuggestions, function (obj, index) {
+                    if (obj.label == label) {
+                        indexToRemove = index;
+                    }
+                });
+                arrayUtil.removeAt(this._selectedSuggestions, indexToRemove);
             },
 
             /**
@@ -511,133 +549,12 @@
             _getLabelFromSuggestion : function (value) {
                 return this._resourcesHandler.suggestionToLabel(value);
             },
-
             /**
-             * Retrieve the label to display in the textfield for an element of the list in the datamodel. This element
-             * may be different from the element in the 'value' parameter of the datamodel.
-             * @protected
-             * @param {Object} value
-             * @return {String}
+             * Get all the selected suggestions
+             * @return {Array}
              */
-            _getLabelFromListValue : function (listValue) {
-                if (this.autoFill) {
-                    return this._getLabelFromSuggestion(listValue.value);
-                }
-                return null;
-            },
-
-            /**
-             * Public method that converts the suggestion object into the displayed text by relying on the protected
-             * method _getLabelFromSuggestion
-             * @param {Object} selectedValues
-             * @return {String}
-             */
-            getDisplayTextFromValue : function (value) {
-                var returnValue = (value) ? this._getLabelFromSuggestion(value) : "";
-                return (returnValue) ? returnValue : value;
-            },
-
-            /**
-             * Prepare the drop down list
-             * @param {String} displayValue
-             * @param {Boolean} currentlyOpen
-             * @return {aria.widgets.controllers.reports.DropDownControllerReport}
-             */
-            toggleDropdown : function (displayValue, currentlyOpen) {
-                // this._datamodel
-                this._resourcesHandler.getAllSuggestions({
-                    fn : this._suggestionsCallbackCheckboxes,
-                    scope : this,
-                    args : {
-                        nextValue : displayValue,
-                        triggerDropDown : !currentlyOpen,
-                        keepSelectedValue : true
-                    }
-                });
-
-                var dataModel = this._dataModel, options = dataModel.listContent;
-                // selectedValues = dataModel.selectedValues;
-                dataModel.selectedIdx = -1; // reset selected indexes
-                // retrieve selection from input
-                // selectedValues = this._parseInputString(options, displayValue);
-                /*if (!currentlyOpen) {
-                    // update list and datamodel
-                    if (!aria.utils.Json.equals(selectedValues, dataModel.value)) {
-                        aria.utils.Json.setValue(dataModel, 'selectedValues', selectedValues);
-                        dataModel.value = selectedValues;
-                        dataModel.text = this._getDisplayValue(selectedValues);
-                    }
-                }*/
-
-                var report = new aria.widgets.controllers.reports.DropDownControllerReport();
-                report.displayDropDown = options.length > 0 && !currentlyOpen;
-
-                if (report.displayDropDown) {
-                    // save initial input
-                    dataModel.initialInput = displayValue;
-                    // update list of options
-                    aria.utils.Json.setValue(dataModel, 'listContent', options);
-                }
-
-                report.text = dataModel.text;
-                // report.value = this._getValue(dataModel.text, dataModel.value);
-                /*if (!selectedValues.length) {
-                    dataModel.selectedIdx = null;
-                }*/
-                return report;
-            },
-
-            _suggestionsCallbackCheckboxes : function (res1) {
-                var jsonUtils = aria.utils.Json;
-
-                var dataModel = this._dataModel;
-                jsonUtils.setValue(dataModel, 'selectedIdx', -1);
-
-                // update datamodel through setValue to update the list has well
-                jsonUtils.setValue(dataModel, 'listContent', res1);
-
-            },
-
-            /**
-             * Validates an event against a configuration
-             * @param {Object} config
-             * @param {aria.DomEvent} event
-             * @protected
-             */
-            _validateModifiers : function (config, event) {
-                return (event.altKey == !!config.alt) && (event.shiftKey == !!config.shift)
-                        && (event.ctrlKey == !!config.ctrl);
-            },
-
-            /**
-             * Checking against special key combinations that trigger a selection of the item in the dropdown
-             * @param {aria.DomEvent} event
-             * @return {Boolean} Whether the event corresponds to a selection key
-             * @protected
-             */
-            _checkSelectionKeys : function (event) {
-                var specialKey = false, keyCode = event.keyCode;
-                for (var index = 0, keyMap; index < this.selectionKeys.length; index++) {
-                    keyMap = this.selectionKeys[index];
-                    if (this._validateModifiers(keyMap, event)) {
-                        // case real key defined. For eg: 65 for a
-                        if (aria.utils.Type.isNumber(keyMap.key)) {
-                            if (keyMap.key === keyCode) {
-                                specialKey = true;
-                                break;
-                            }
-                        } else if (typeof(keyMap.key) !== "undefined"
-                                && event["KC_" + keyMap.key.toUpperCase()] == keyCode) {
-                            specialKey = true;
-                            break;
-                        } else if (typeof(keyMap.key) !== "undefined"
-                                && String.fromCharCode(event.charCode) == keyMap.key) {
-                            specialKey = true;
-                            break;
-                        }
-                    }
-                }
-                return specialKey;
+            getSelectedSuugestions : function () {
+                return this._selectedSuggestions;
             }
 
         }

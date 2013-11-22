@@ -974,6 +974,14 @@ Aria.beanDefinitions({
                 "maxOptions" : {
                     $type : "json:Integer",
                     $description : "Maximum no of options that can be selected with autocomplete."
+                },
+                "bind" : {
+                    $type : "DropDownTextInputCfg.bind",
+                    $properties : {
+                        "selectedValue" : {
+                            $type : "common:BindingRef"
+                        }
+                    }
                 }
             }
         },

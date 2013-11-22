@@ -18,7 +18,7 @@
  */
 Aria.beanDefinitions({
     $package : "aria.resources.handlers.MultiAutocompleteHandlerBean",
-    $description : "Definition of the suggestions used in the LC resource handler",
+    $description : "Definition of the suggestions used in the MultiAutocomplete resource handler",
     $namespaces : {
         "base" : "aria.widgets.form.AutoCompleteBean",
         "json" : "aria.core.JsonTypes"

@@ -21,35 +21,39 @@
     {macro writeSkinClass(info)}
          {var skinClassName=info.skinClassName/}
          {var skinClass=info.skinClass/}
-        .xMultiAutocomplete_list {
+        .xMultiAutocomplete_list{
             position:relative;
             overflow:hidden;
         }
         .xMultiAutocomplete_list input{
  			margin-top:2px; 
- 			min-width:60px;  
+ 			min-width:70px;  
  			vertical-align:middle !important;    
         }
-       .xMultiAutocomplete_options{
+       .xMultiAutocomplete_options,.xMultiAutocomplete_options_selected{
         	display:inline-block;
         	position:relative;
-        	border: 1px solid #AAAAAA;
-        	background-color: #E4E4E4;
-        	color:#333;
+        	border: ${skinClass.borderWidth}px solid ${skinClass.borderColor};
+        	background-color: ${skinClass.closeSpriteBackground};
+        	color:${skinClass.option.color};
         	border-radius:3px;
         	margin:2px;
         }
+        .options_selected{
+       	   border-color: #00ACEE;
+       	}
         .xMultiAutocomplete_options span{
         	margin:2px 5px;
         	display:inline-block;
+        	cursor:pointer;
         }
+        
         .xMultiAutocomplete_options a{
-        	background: #E4E4E4 url(css/atdefskin/sprites/closemark.gif) no-repeat -5px -25px;
-        	height:10px;
-        	width:9px;
+        	height:${skinClass.closeSpriteH}px;
+        	width:${skinClass.closeSpriteW}px;
         	display:inline-block;
-        	text-indent:-100000px;
         	padding-left:2px;
+        	{call background(skinClass.closeSpriteBackground,skinClass.closeSpriteURL,"no-repeat -5px -25px")/}
         }
         .xMultiAutocomplete_options a:hover{
         	background-position: -5px -5px;

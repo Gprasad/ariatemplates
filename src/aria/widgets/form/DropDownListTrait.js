@@ -173,7 +173,16 @@ Aria.classDefinition({
                     selectedIndex : {
                         to : "selectedIdx",
                         inside : dm
-                    }
+                    }/*,
+
+                    selectedValues : {
+                       to : "selectedValues",
+                       inside : dm
+                    },
+                    multipleSelect : {
+                       to : "multipleSelect",
+                       inside : dm
+                    }*/
                 },
                 scrollBarX : false
             }, this._context, this._lineNumber);

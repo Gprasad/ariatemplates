@@ -570,7 +570,9 @@ Aria.classDefinition({
                         }
                     }
                     if (typeof value != 'undefined' && !stopValueProp && !this._isPropertyEquals("value", value)) {
-                        hasChange = this.setProperty("value", value);
+                       var val = this.controller._dataModel.value || value;
+                        hasChange = this.setProperty("value", val);
+                        // hasChange = this.setProperty("value", value);
                     }
                 }
 
@@ -973,7 +975,8 @@ Aria.classDefinition({
                     return;
                 }
 
-                this.checkValue();
+                this.checkValue({
+                 "eventName" : event.type});
                 // checkvalue might trigger an onchange that disposes
                 // the widget, check again this._cfg
                 cfg = this._cfg;

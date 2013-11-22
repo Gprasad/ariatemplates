@@ -20,7 +20,7 @@ Aria.classDefinition({
     $classpath : "aria.widgets.form.MultiAutoComplete",
     $extends : "aria.widgets.form.DropDownTextInput",
     $dependencies : ["aria.widgets.form.DropDownListTrait", "aria.widgets.controllers.MultiAutocompleteController",
-            "aria.utils.Event"],
+            "aria.utils.Event", "aria.utils.Json"],
     $css : ["aria.widgets.form.MultiAutoCompleteStyle", "aria.widgets.form.list.ListStyle",
             "aria.widgets.container.DivStyle"],
     /**
@@ -52,11 +52,11 @@ Aria.classDefinition({
 
         /*if (!cfg.expandButton) {
             *//**
-                 * Array of icon names which need to be hidden.
-                 * @type Array
-                 * @protected
-                 * @override
-                 */
+         * Array of icon names which need to be hidden.
+         * @type Array
+         * @protected
+         * @override
+         */
         /*
                 this._hideIconNames = ["dropdown"];
                 }*/
@@ -150,8 +150,8 @@ Aria.classDefinition({
             if (!this.controller._resetFocus) {
                 this._keepFocus = false;
             }
-            this.$DropDownTextInput._reactToControllerReport.call(this, report, arg);
-            if (report) {
+            if (report && report.value !== null) {
+                this.$DropDownTextInput._reactToControllerReport.call(this, report, arg);
                 this.controller._addMultiselectValues(this, report, arg);
             }
 
@@ -225,21 +225,6 @@ Aria.classDefinition({
             this.__propagateKeyDown(event);
         },
         /**
-         * To Handle the onblur mechanism.
-         */
-        /* _dom_onblur : function (event) {
-             var textInput = this._textInputField;
-             if (textInput.value === "") {
-                 // do nothing here..
-                 return;
-             }
-             var report = this.controller.checkValue(textInput.value);
-             var arg = {};
-             this.controller._addMultiselectValues(this, report, arg);
-
-         },*/
-
-        /**
          * Convert mouse event and browser copy/paste (contextual menu event) into a keydown event that can be handled
          * by the controller
          * @param {aria.DomEvent} event Event object, in IE this is an instance of HTMLElement
@@ -284,14 +269,10 @@ Aria.classDefinition({
             }
             this.$DropDownTextInput.initWidget.call(this);
         },
-        _frame_events : function (evt) {
-            if (evt.name === "frameClick") {
-                if (this._hasFocus) {
-                    this._keepFocus = true;
-                } else {
-                    this.controller._setFocus(this);
-                }
-            }
+
+        _updateModel : function (value) {
+            var selectedValues = aria.utils.Json.copy(value);
+            this.setProperty("selectedValue", selectedValues);
         }
 
     }

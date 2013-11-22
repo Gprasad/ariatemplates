@@ -24,7 +24,7 @@
     Aria.classDefinition({
         $classpath : "aria.resources.handlers.MultiAutocompleteResourcesHandler",
         $implements : ["aria.resources.handlers.IResourcesHandler"],
-        $dependencies : ["aria.utils.String", "aria.resources.handlers.LCResourcesHandlerBean"],
+        $dependencies : ["aria.utils.String", "aria.resources.handlers.MultiAutocompleteHandlerBean", "aria.utils.Json"],
         $statics : {
             /**
              * Suggestion bean that validates a given suggestion
@@ -131,25 +131,22 @@
                     textEntry = stringUtil.stripAccents(textEntry).toLowerCase();
 
                     var codeSuggestions = [], labelSuggestions = [], labelSuggestionsMultiWord = [];
-                    var nbSuggestions = this._suggestions.length, textEntryLength = textEntry.length;
+                    var nbSuggestions = this._suggestions.length, textEntryLength = textEntry.length, allSuggestion = aria.utils.Json.copy(this._suggestions);
                     var multiWord = this._labelMatchAtWordBoundaries;
-                    var index, suggestion;
-                    var patt = new RegExp("^[a-z]{1}\\d+-\\d+");
-                    if (callback.scope.allowRangeValues && patt.test(textEntry)) {
-                        var firstLetter = textEntry[0];
-                        var rangeV = textEntry.substring(1).split("-");
+                    var index, suggestion, rangeV = [];
+                    var pattern = /^([a-z]{1})(\d+)-(\d+)/.exec(textEntry);
+                    if (callback.scope.allowRangeValues && pattern) {
+                        var firstLetter = pattern[1];
+                        rangeV[0] = pattern[2], rangeV[1] = pattern[3];
                     } else {
-                        var rangeV = [];
-                        rangeV[0] = 1;
-                        rangeV[1] = 1;
+                        rangeV[0] = rangeV[1] = 1;
                     }
                     for (var k = rangeV[0]; k <= rangeV[1]; k++) {
-
                         // textEntry = firstLetter + k;
                         textEntry = firstLetter ? firstLetter + k : textEntry;
                         textEntryLength = textEntry.length;
                         for (index = 0; index < nbSuggestions; index++) {
-                            suggestion = this._suggestions[index];
+                            suggestion = allSuggestion[index];
                             if (suggestion.code === textEntry) {
                                 suggestion.original.exactMatch = true;
                                 codeSuggestions.unshift(suggestion.original);
@@ -175,7 +172,10 @@
                                     suggestion.original.multiWordMatch = !startsWithMatch; // other highlight
                                     // modifier
                                     suggestion.original.exactMatch = exactMatch;
-                                    suggestion.original.selected = true;
+                                    suggestion.original.entry = textEntry;
+                                    if (pattern) {
+                                        suggestion.original.selected = true;
+                                    }
                                     if (exactMatch) {
                                         suggestionsContainer.unshift(suggestion.original);
                                     } else {
@@ -272,7 +272,6 @@
                         }
                         eachSuggestion.label = suggestion[suggestionsLabel];
                         eachSuggestion.code = suggestion[suggestionsCode];
-                        eachSuggestion.value = suggestion["value"];
                         var newSuggestion = {
                             label : stringUtil.stripAccents(eachSuggestion.label).toLowerCase(),
                             code : stringUtil.stripAccents(eachSuggestion.code).toLowerCase(),
