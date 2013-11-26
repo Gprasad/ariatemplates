@@ -15,7 +15,11 @@
 (function () {
 
     // shortcuts
+<<<<<<< HEAD
     var stringUtil, typesUtil;
+=======
+    var jsonValidator, stringUtil, typesUtil, arrayUtil;
+>>>>>>> feat #870 MultiAutoComplete widget
 
     /**
      * Resources handler for LABEL-CODE suggestions. This handler is to be fed and used with user defined entries.<br />
@@ -41,6 +45,7 @@
 
         },
         $onload : function () {
+<<<<<<< HEAD
             stringUtil = aria.utils.String;
             typesUtil = aria.utils.Type;
         },
@@ -51,6 +56,22 @@
         $prototype : {
 
             rangePattern : /^[a-z]{1}\d+-\d+/,
+=======
+            jsonValidator = aria.core.JsonValidator;
+            stringUtil = aria.utils.String;
+            typesUtil = aria.utils.Type;
+            arrayUtil = aria.utils.Array;
+        },
+        $onunload : function () {
+            jsonValidator = null;
+            stringUtil = null;
+            typesUtil = null;
+            arrayUtil = null;
+        },
+        $prototype : {
+
+            rangePattern : new RegExp("^[a-z]{1}\\d+-\\d+"),
+>>>>>>> feat #870 MultiAutoComplete widget
 
             /**
              * Call the callback with an array of suggestions in its arguments. Suggestions that are exact match are
@@ -64,7 +85,10 @@
                     textEntry = stringUtil.stripAccents(textEntry).toLowerCase();
 
                     var codeSuggestions = [], labelSuggestions = [], nbSuggestions = this._suggestions.length, textEntryLength = textEntry.length;
+<<<<<<< HEAD
                     var results = {};
+=======
+>>>>>>> feat #870 MultiAutoComplete widget
                     var index, suggestion, isRangeValue = false;
                     var patt = this.rangePattern;
                     if (this.allowRangeValues && patt.test(textEntry)) {
@@ -104,9 +128,13 @@
                     }
 
                     var suggestions = codeSuggestions.concat(labelSuggestions);
+<<<<<<< HEAD
                     results.suggestions = suggestions;
                     results.multipleValues = isRangeValue;
                     this.$callback(callback, results);
+=======
+                    this.$callback(callback, suggestions);
+>>>>>>> feat #870 MultiAutoComplete widget
                 } else {
                     this.$callback(callback, null);
                 }

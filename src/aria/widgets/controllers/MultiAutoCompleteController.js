@@ -67,11 +67,14 @@
              * @type Object or Array
              */
             this._suggestionToBeAdded = null;
+<<<<<<< HEAD
             /**
              * Check if value is range of suggestions
              * @type Boolean
              */
             this._isRangeValue = false;
+=======
+>>>>>>> feat #870 MultiAutoComplete widget
 
             // Inherited from aria.html.controllers.Suggestions
             this._init();
@@ -84,7 +87,11 @@
              * @return {aria.widgets.controllers.reports.DropDownControllerReport}
              */
             checkText : function (text, init) {
+<<<<<<< HEAD
                 var dataModel = this._dataModel, controller = this, addedValue;
+=======
+                var dataModel = this._dataModel, controller = this, labelKey = this._resourcesHandler._options.labelKey, codeKey = this._resourcesHandler._options.codeKey, addedValue;
+>>>>>>> feat #870 MultiAutoComplete widget
 
                 if (text !== '' && text !== dataModel.text) {
                     dataModel.text = text;
@@ -113,7 +120,13 @@
                             addedValue = this.editedSuggestion;
                             dataModel.value = addedValue;
                         } else {
+<<<<<<< HEAD
                             addedValue = text;
+=======
+                            addedValue = {};
+                            addedValue[labelKey] = addedValue[codeKey] = text;
+
+>>>>>>> feat #870 MultiAutoComplete widget
                         }
                         this._suggestionToBeAdded = addedValue;
                         if (this.selectedSuggestions.length > 0 && !init) {
@@ -142,8 +155,13 @@
              * @override
              */
             checkValue : function (value, init) {
+<<<<<<< HEAD
                 var report = new aria.widgets.controllers.reports.DropDownControllerReport(), dataModel = this._dataModel, rangeMatch = [], reportVal = [];
                 var addedValue, isRangeValue = this._isRangeValue;
+=======
+                var report = new aria.widgets.controllers.reports.DropDownControllerReport(), dataModel = this._dataModel, rangeMatch = null, reportVal = [];
+                var patt = new RegExp("^[a-z]{1}\\d+-\\d+"), addedValue;
+>>>>>>> feat #870 MultiAutoComplete widget
                 if (value == null || aria.utils.Array.isEmpty(value)) {
                     // can be null either because it bound to null or because it is bind to value or request is in
                     // progress
@@ -169,10 +187,15 @@
                         dataModel.text = value;
                         reportVal = value;
                     }
+<<<<<<< HEAD
                     if (isRangeValue && dataModel.listContent) {
                         for (var k = 0, len = dataModel.listContent.length; k < len; k++) {
                             rangeMatch.push(dataModel.listContent[k].value);
                         }
+=======
+                    if (patt.test(value) && dataModel.listContent) {
+                        rangeMatch = dataModel.listContent;
+>>>>>>> feat #870 MultiAutoComplete widget
                     }
                     if (!this.freeText) {
                         report.ok = false;
@@ -184,7 +207,11 @@
                     }
                 }
                 // var addedValue = rangeMatch || reportVal;
+<<<<<<< HEAD
                 addedValue = this._suggestionToBeAdded = rangeMatch.length > 0 ? rangeMatch : reportVal;
+=======
+                addedValue = this._suggestionToBeAdded = rangeMatch || reportVal;
+>>>>>>> feat #870 MultiAutoComplete widget
                 if (this.editMode) {
                     this._suggestionToBeAdded = "";
                 }
@@ -203,7 +230,11 @@
              */
             _checkValidSuggestion : function (suggestionToBeAdded) {
                 var allSuggestions = aria.utils.Json.copy(this.selectedSuggestions);
+<<<<<<< HEAD
                 if (typeUtil.isObject(suggestionToBeAdded) || typeUtil.isString(suggestionToBeAdded)) {
+=======
+                if (typeUtil.isObject(suggestionToBeAdded)) {
+>>>>>>> feat #870 MultiAutoComplete widget
                     allSuggestions.push(suggestionToBeAdded);
                 }
                 if (typeUtil.isArray(suggestionToBeAdded)) {
@@ -231,7 +262,10 @@
                         suggestions = res.suggestions;
                         error = res.error;
                         repositionDropDown = res.repositionDropDown;
+<<<<<<< HEAD
                         this._isRangeValue = res.multipleValues;
+=======
+>>>>>>> feat #870 MultiAutoComplete widget
                     } else {
                         suggestions = res;
                     }
@@ -324,7 +358,11 @@
                 var filteredSuggestions = [];
                 for (var i = 0; i < suggestions.length; i++) {
                     if (arrayUtil.indexOf(this.selectedSuggestionsLabelsArray, suggestions[i].label) == -1) {
+<<<<<<< HEAD
                         filteredSuggestions.push(suggestions[i]);
+=======
+                        filteredSuggestions.unshift(suggestions[i]);
+>>>>>>> feat #870 MultiAutoComplete widget
                     }
                 }
                 return filteredSuggestions;
@@ -344,8 +382,12 @@
                     arrayOfSuggestions = value;
                 }
                 for (var k = 0; k < arrayOfSuggestions.length; k++) {
+<<<<<<< HEAD
                     if (!typeUtil.isString(arrayOfSuggestions[k])
                             && !aria.core.JsonValidator.check(arrayOfSuggestions[k], beanName)) {
+=======
+                    if (!aria.core.JsonValidator.check(arrayOfSuggestions[k], beanName)) {
+>>>>>>> feat #870 MultiAutoComplete widget
                         return false;
                     }
                 }
@@ -399,7 +441,19 @@
                 }, 10);
                 return null;
 
+<<<<<<< HEAD
             }
+=======
+            },
+            /**
+             * Get all the selected suggestions
+             * @return {Array}
+             */
+            getSelectedSuugestions : function () {
+                return this.selectedSuggestions;
+            }
+
+>>>>>>> feat #870 MultiAutoComplete widget
         }
     });
 })();

@@ -966,6 +966,14 @@ Aria.beanDefinitions({
             $type : "AutoCompleteCfg",
             $description : "The base configuration for the MultiAutoComplete widget",
             $properties : {
+<<<<<<< HEAD
+=======
+                "allowRangeValues" : {
+                    $type : "json:Boolean",
+                    $description : "To add range of values",
+                    $default : false
+                },
+>>>>>>> feat #870 MultiAutoComplete widget
                 "maxOptions" : {
                     $type : "json:Integer",
                     $description : "Maximum no of options that can be selected with MultiAutoComplete."
