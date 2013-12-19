@@ -24,15 +24,6 @@ Aria.beanDefinitions({
         "json" : "aria.core.JsonTypes"
     },
     $beans : {
-<<<<<<< HEAD
-=======
-        "Suggestion" : {
-            $type : "base:Suggestion",
-
-            $description : "A Label-Code suggestion with range of values ",
-            $restricted : false
-        },
->>>>>>> feat #870 MultiAutoComplete widget
         "Configuration" : {
             $type : "base:Configuration",
             $description : "Configuration Object for Suggestions with range of values",

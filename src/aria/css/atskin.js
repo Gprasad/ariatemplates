@@ -1332,7 +1332,6 @@ Aria.classDefinition({
                         italics : true,
                         color : "gray"
                     },
-<<<<<<< HEAD
                     offsetTop : 1,
                     optionsBackgroundColor : "#E4E4E4",
                     optionsColor : "#333",
@@ -1341,17 +1340,6 @@ Aria.classDefinition({
                     closeSpriteURL : "atskin/sprites/closemark.gif",
                     closeSpriteHeight : 10,
                     closeSpriteWidth : 9
-=======
-                    closeSpriteBackground : "#E4E4E4",
-                    closeSpriteURL : "atskin/sprites/closemark.gif",
-                    optionColor : "#333",
-                    offsetTop : 1,
-                    closeSpriteH : 10,
-                    closeSpriteW : 9,
-                    borderWidth : 1,
-                    borderColor : "#AAAAAA"
-
->>>>>>> feat #870 MultiAutoComplete widget
                 }
             },
             ErrorList : {

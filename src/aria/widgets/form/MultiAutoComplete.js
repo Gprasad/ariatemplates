@@ -20,11 +20,7 @@ Aria.classDefinition({
     $classpath : "aria.widgets.form.MultiAutoComplete",
     $extends : "aria.widgets.form.AutoComplete",
     $dependencies : ["aria.widgets.controllers.MultiAutoCompleteController", "aria.utils.Event", "aria.utils.Dom",
-<<<<<<< HEAD
             "aria.utils.Type", "aria.utils.Array", "aria.utils.Math"],
-=======
-            "aria.utils.Type", "aria.utils.Delegate", "aria.utils.Array", "aria.utils.Math"],
->>>>>>> feat #870 MultiAutoComplete widget
     $css : ["aria.widgets.form.MultiAutoCompleteStyle", "aria.widgets.form.list.ListStyle",
             "aria.widgets.container.DivStyle"],
     /**
@@ -34,14 +30,8 @@ Aria.classDefinition({
      * @param {Number} lineNumber Line number corresponding in the .tpl file where the widget is created
      * @param {Number} controller the data controller object
      */
-<<<<<<< HEAD
     $constructor : function (cfg, ctxt, lineNumber, controllerInstance) {
         var controller = controllerInstance || new aria.widgets.controllers.MultiAutoCompleteController();
-=======
-    $constructor : function (cfg, ctxt, lineNumber, controller) {
-
-        var controller = new aria.widgets.controllers.MultiAutoCompleteController();
->>>>>>> feat #870 MultiAutoComplete widget
 
         this.$AutoComplete.constructor.call(this, cfg, ctxt, lineNumber, controller);
 
@@ -70,14 +60,8 @@ Aria.classDefinition({
         },
         /**
          * Override internal method not to update the input width incase of multi autocomplete
-<<<<<<< HEAD
          */
         _computeInputWidth : function () {
-=======
-         * @param {Object} skinObj
-         */
-        _setInputWidth : function () {
->>>>>>> feat #870 MultiAutoComplete widget
             return;
         },
         /**
@@ -137,10 +121,6 @@ Aria.classDefinition({
 
         _addMultiselectValues : function (report, arg) {
             var controller = this.controller, suggestionToBeAdded = controller._suggestionToBeAdded;
-<<<<<<< HEAD
-=======
-            var rangePattern = controller._resourcesHandler.rangePattern;
->>>>>>> feat #870 MultiAutoComplete widget
             var typeUtil = aria.utils.Type;
 
             var isValid;
@@ -153,12 +133,6 @@ Aria.classDefinition({
             if (controller.freeText && suggestionToBeAdded && arg && arg.eventName == "blur") {
                 isValid = true;
             }
-<<<<<<< HEAD
-=======
-            if (suggestionToBeAdded && suggestionToBeAdded[0] && rangePattern.test(suggestionToBeAdded[0].entry)) {
-                isValid = true;
-            }
->>>>>>> feat #870 MultiAutoComplete widget
             if (isValid && suggestionToBeAdded && !this._dropdownPopup) {
                 var suggestionsMarkup = "", domUtil = aria.utils.Dom;
                 if (aria.utils.Type.isArray(suggestionToBeAdded)) {
@@ -198,11 +172,7 @@ Aria.classDefinition({
          */
         _generateSuggestionMarkup : function (value) {
             var suggestionMarkup, checkExistingValue = false, cfg = this._cfg;
-<<<<<<< HEAD
             var label = aria.utils.String.escapeHTML(value.label || value);
-=======
-            var label = value.label || value;
->>>>>>> feat #870 MultiAutoComplete widget
             for (var k = 0; k < this.controller.selectedSuggestions.length; k++) {
                 if (this.controller.selectedSuggestions[k].label == value) {
                     checkExistingValue = true;
@@ -277,12 +247,8 @@ Aria.classDefinition({
         _removeValues : function (label) {
             var indexToRemove, arrayUtil = aria.utils.Array, controller = this.controller;
             arrayUtil.forEach(controller.selectedSuggestions, function (obj, index) {
-<<<<<<< HEAD
                 var suggestionLabel = obj.label || obj;
                 if (suggestionLabel == label) {
-=======
-                if (obj.label == label) {
->>>>>>> feat #870 MultiAutoComplete widget
                     indexToRemove = index;
                     controller.editedSuggestion = obj;
                 }
@@ -291,8 +257,4 @@ Aria.classDefinition({
             arrayUtil.remove(controller.selectedSuggestionsLabelsArray, label);
         }
     }
-<<<<<<< HEAD
 });
-=======
-});
->>>>>>> feat #870 MultiAutoComplete widget

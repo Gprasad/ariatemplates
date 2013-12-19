@@ -1346,18 +1346,10 @@ Aria.beanDefinitions({
             $type : "DropDownTextInputCfg",
             $description : "",
             $properties : {
-<<<<<<< HEAD
-=======
-                "closeSpriteBackground" : {
-                    $type : "Color",
-                    $default : "#E4E4E4"
-                },
->>>>>>> feat #870 MultiAutoComplete widget
                 "closeSpriteURL" : {
                     $type : "json:String",
                     $description : ""
                 },
-<<<<<<< HEAD
                 "closeSpriteHeight" : {
                     $type : "Pixels"
                 },
@@ -1379,11 +1371,6 @@ Aria.beanDefinitions({
                 "optionsBorderWidth" : {
                     $type : "Pixels",
                     $default : 1
-=======
-                "optionColor" : {
-                    $type : "Color",
-                    $default : "#333"
->>>>>>> feat #870 MultiAutoComplete widget
                 }
             }
         },

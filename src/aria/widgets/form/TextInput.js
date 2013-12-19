@@ -295,11 +295,7 @@ Aria.classDefinition({
             }
             var type = this._isPassword && !hts ? "password" : "text";
 
-<<<<<<< HEAD
             var inputWidth = this._computeInputWidth();
-=======
-            var inputWidth = this._setInputWidth(skinObj);
->>>>>>> feat #870 MultiAutoComplete widget
             if (inputWidth < 0) {
                 inputWidth = 0;
             }
@@ -337,17 +333,10 @@ Aria.classDefinition({
 
         },
         /**
-<<<<<<< HEAD
          * @return {Number} width of input
          */
         _computeInputWidth : function () {
             var skinObj = this._skinObj;
-=======
-         * @param {Object} skinObj
-         * @return {Number} width of input
-         */
-        _setInputWidth : function (skinObj) {
->>>>>>> feat #870 MultiAutoComplete widget
             return this._frame.innerWidth - skinObj.innerPaddingLeft - skinObj.innerPaddingRight;
         },
 
@@ -382,7 +371,7 @@ Aria.classDefinition({
          * Check that the value displayed in the field is correct. If not, set the field in error and store its invalid
          * text
          * @param {Object} arg - optional arguments to control the behavior
-         * 
+         *
          * <pre>
          * {
          *     text: {String} (default:null) - display text,
@@ -392,9 +381,9 @@ Aria.classDefinition({
          *         (usefull when check is done on 'strange' events like mouseover)
          * }
          * </pre>
-         * 
+         *
          * @return {Object}
-         * 
+         *
          * <pre>
          * {
          *     isValid : {Boolean} Whether the value is valid or not
@@ -767,12 +756,7 @@ Aria.classDefinition({
             // PROFILING // var profilingId = this.$startMeasure("update state
             // (TextInput)");
             this.$InputWithFrame._updateState.call(this);
-<<<<<<< HEAD
             var inputWidth = this._computeInputWidth();
-=======
-            var skinObj = this._skinObj;
-            var inputWidth = this._setInputWidth(skinObj);
->>>>>>> feat #870 MultiAutoComplete widget
             if (inputWidth < 0) {
                 inputWidth = 0;
             }
@@ -926,16 +910,9 @@ Aria.classDefinition({
                     return;
                 }
 
-<<<<<<< HEAD
                 this.checkValue({
                     "eventName" : "blur"
                 });
-=======
-                var eventType = (event && event.type) ? {
-                    "eventName" : event.type
-                } : "";
-                this.checkValue(eventType);
->>>>>>> feat #870 MultiAutoComplete widget
                 // checkvalue might trigger an onchange that disposes the widget, check again this._cfg
                 cfg = this._cfg;
                 if (!cfg) {

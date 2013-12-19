@@ -15,11 +15,7 @@
 (function () {
 
     // shortcuts
-<<<<<<< HEAD
     var stringUtil, typesUtil;
-=======
-    var jsonValidator, stringUtil, typesUtil, arrayUtil;
->>>>>>> feat #870 MultiAutoComplete widget
 
     /**
      * Resources handler for LABEL-CODE suggestions. This handler is to be fed and used with user defined entries.<br />
@@ -45,7 +41,6 @@
 
         },
         $onload : function () {
-<<<<<<< HEAD
             stringUtil = aria.utils.String;
             typesUtil = aria.utils.Type;
         },
@@ -55,23 +50,7 @@
         },
         $prototype : {
 
-            rangePattern : /^[a-z]{1}\d+-\d+/,
-=======
-            jsonValidator = aria.core.JsonValidator;
-            stringUtil = aria.utils.String;
-            typesUtil = aria.utils.Type;
-            arrayUtil = aria.utils.Array;
-        },
-        $onunload : function () {
-            jsonValidator = null;
-            stringUtil = null;
-            typesUtil = null;
-            arrayUtil = null;
-        },
-        $prototype : {
-
-            rangePattern : new RegExp("^[a-z]{1}\\d+-\\d+"),
->>>>>>> feat #870 MultiAutoComplete widget
+            rangePattern : /^([a-z]{1})(\d+-\d+)/,
 
             /**
              * Call the callback with an array of suggestions in its arguments. Suggestions that are exact match are
@@ -85,20 +64,14 @@
                     textEntry = stringUtil.stripAccents(textEntry).toLowerCase();
 
                     var codeSuggestions = [], labelSuggestions = [], nbSuggestions = this._suggestions.length, textEntryLength = textEntry.length;
-<<<<<<< HEAD
-                    var results = {};
-=======
->>>>>>> feat #870 MultiAutoComplete widget
-                    var index, suggestion, isRangeValue = false;
-                    var patt = this.rangePattern;
-                    if (this.allowRangeValues && patt.test(textEntry)) {
-                        var firstLetter = textEntry[0];
-                        var rangeV = textEntry.substring(1).split("-");
+                    var results = {}, index, suggestion, isRangeValue = false, rangeV = [], arrayIndex = 0;
+                    var patt = this.rangePattern, rangeVal = patt.exec(textEntry);
+                    if (this.allowRangeValues && rangeVal) {
+                        var firstLetter = rangeVal[1];
+                        rangeV = rangeVal[2].split("-");
                         isRangeValue = true;
                     } else {
-                        var rangeV = [];
-                        rangeV[0] = 1;
-                        rangeV[1] = 1;
+                        rangeV[arrayIndex] = rangeV[++arrayIndex] = 1;
                     }
                     for (var k = rangeV[0]; k <= rangeV[1]; k++) {
                         textEntry = firstLetter ? firstLetter + k : textEntry;
@@ -128,13 +101,9 @@
                     }
 
                     var suggestions = codeSuggestions.concat(labelSuggestions);
-<<<<<<< HEAD
                     results.suggestions = suggestions;
                     results.multipleValues = isRangeValue;
                     this.$callback(callback, results);
-=======
-                    this.$callback(callback, suggestions);
->>>>>>> feat #870 MultiAutoComplete widget
                 } else {
                     this.$callback(callback, null);
                 }
